@@ -1,21 +1,26 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Switch} from 'react-native';
-import {RadioButton} from 'react-native-paper';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, TextInput } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const MessageType = () => {
-  // Initialize state with 'message' as the default value
-  const [selectedOption, setSelectedOption] = useState(null);
-  const navigation = useNavigation();
-
-  const handleNextPress = () => {
-    // Navigate to MessageTypeScreen
-    navigation.navigate('SummaryScreen');
-  };
-
   const [isEnabled, setIsEnabled] = useState(false);
+  const [keywords, setKeywords] = useState('');
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { recipientType, recipientValue } = route.params || {};
+
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
+  const handleNextPress = () => {
+    const keywordsArray = keywords.split(',').map(keyword => keyword.trim()).filter(keyword => keyword.length > 0);
+    const dataToSend = {
+      recipientType,
+      recipientValue,
+      keywords: keywordsArray
+    };
+
+    navigation.navigate('SummaryScreen', { data: dataToSend });
+  };
 
   return (
     <View style={styles.container}>
@@ -26,13 +31,22 @@ const MessageType = () => {
           Allow message containing the following words:
         </Text>
         <Switch
-          trackColor={{false: '#767577', true: '#81b0ff'}}
+          trackColor={{ false: '#767577', true: '#81b0ff' }}
           thumbColor={isEnabled ? '#28a745' : '#f4f3f4'}
           ios_backgroundColor="#28a745"
           onValueChange={toggleSwitch}
           value={isEnabled}
         />
       </View>
+
+      {isEnabled && (
+        <TextInput
+          style={styles.input}
+          placeholder="Enter keywords separated by commas"
+          value={keywords}
+          onChangeText={setKeywords}
+        />
+      )}
 
       <View style={styles.keywordsContainer}>
         <Text style={styles.keywordsText}>Allowed words:</Text>
@@ -72,14 +86,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
   },
-  radioContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 5,
-  },
-  optionText: {
-    fontSize: 16,
-    marginRight: 10,
+  input: {
+    width: '100%',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 20,
   },
   keywordsContainer: {
     marginBottom: 190,
